@@ -138,7 +138,7 @@ namespace kinecontrol
     //Get Skeleton Points
             private SkeletonPoint[] getPointsOfInterest(Skeleton s)
         {
-            SkeletonPoint[] sp = new SkeletonPoint[6];
+            SkeletonPoint[] sp = new SkeletonPoint[Joints.length];
 
             //Get shoulders
             sp[Joints.SHOULDER_L] = s.Joints[JointType.ShoulderLeft].Position;
@@ -151,6 +151,17 @@ namespace kinecontrol
             //Wrists
             sp[Joints.WRIST_L] = s.Joints[JointType.WristLeft].Position;
             sp[Joints.WRIST_R] = s.Joints[JointType.WristRight].Position;
+
+            //Spine
+            sp[Joints.SPINE] = s.Joints[JointType.Spine].Position;
+
+            //Hips
+            sp[Joints.HIP_L] = s.Joints[JointType.HipLeft].Position;
+            sp[Joints.HIP_R] = s.Joints[JointType.HipRight].Position;
+
+            //Hands
+            sp[Joints.HAND_L] = s.Joints[JointType.HandLeft].Position;
+            sp[Joints.HAND_R] = s.Joints[JointType.HandRight].Position;
 
             return sp;
 

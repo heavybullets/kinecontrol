@@ -25,7 +25,6 @@ namespace kinecontrol
             set
             {
                 _calibratedPoints = value;
-                mouseController.rh_center = JointProcessor.transformToPoint3D(value[Joints.WRIST_R]);
             }
             get { return _calibratedPoints; }
         }
@@ -33,13 +32,12 @@ namespace kinecontrol
         //Mouse Simulator
         private MouseController mouseController;
 
-        private float armLength;
 
         public JointProcessor()
         {
             mouseController = new MouseController(MouseModes.DELTA);
         }
-        
+
         //Method for processing Joints and making events
         public void processJoints(SkeletonPoint[] point)
         {
@@ -61,7 +59,7 @@ namespace kinecontrol
             }
 
             diff = normalizeXYUsingSkeletonPoint(diff, point);
-            
+
 
             //Front-Reverse Movement
             if (-diff[Joints.SHOULDER_L].Z > umbral && -diff[Joints.SHOULDER_R].Z > umbral)
@@ -70,7 +68,7 @@ namespace kinecontrol
                 if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W) == false)
                     InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_W);
             }
-            else if(InputSimulator.IsKeyDown(VirtualKeyCode.VK_W))
+            else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_W);
 
             //Reverse Movement
@@ -80,14 +78,14 @@ namespace kinecontrol
                     InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_S);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S))
-                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_S);
+                InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_S);
 
 
             //Jump - problems when going forward
             if (diff[Joints.SHOULDER_L].Y > (umbral / 3) && diff[Joints.SHOULDER_R].Y > (umbral / 3))
             {
                 //if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE) == false)
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
+                InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
             }
             /*else if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.SPACE);*/
@@ -101,7 +99,7 @@ namespace kinecontrol
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.CONTROL);
-            
+
             //Left Movement
             if (-diff[Joints.SHOULDER_L].X > umbral && -diff[Joints.SHOULDER_R].X > umbral)
             {
@@ -122,7 +120,7 @@ namespace kinecontrol
 
             //Process Mouse Movements
             //We give whole movements, no Deltas
-            mouseController.processHands(transformToPoint3D(point[Joints.WRIST_R]), transformToPoint3D(point[Joints.WRIST_L]));
+            mouseController.processHands(transformToPoint3D(point));
         }
 
         static public Point3D normalizeXY(Point3D p, double f)
@@ -135,7 +133,8 @@ namespace kinecontrol
 
         static public Point3D[] normalizeXYUsingSkeletonPoint(Point3D[] o, SkeletonPoint[] s)
         {
-            Point3D[] sp = new Point3D[6];
+            Point3D[] sp = new Point3D[Joints.length];
+
 
             //Get shoulders
             sp[Joints.SHOULDER_L].X = o[Joints.SHOULDER_L].X / s[Joints.SHOULDER_L].Z;
@@ -164,13 +163,36 @@ namespace kinecontrol
             sp[Joints.WRIST_R].Y = o[Joints.WRIST_R].Y / s[Joints.WRIST_R].Z;
             sp[Joints.WRIST_R].Z = o[Joints.WRIST_R].Z;
 
+            //Spine
+            sp[Joints.SPINE].X = o[Joints.SPINE].X / s[Joints.SPINE].Z;
+            sp[Joints.SPINE].Y = o[Joints.SPINE].Y / s[Joints.SPINE].Z;
+            sp[Joints.SPINE].Z = o[Joints.SPINE].Z;
+
+            //HIP
+            sp[Joints.HIP_L].X = o[Joints.HIP_L].X / s[Joints.HIP_L].Z;
+            sp[Joints.HIP_L].Y = o[Joints.HIP_L].Y / s[Joints.HIP_L].Z;
+            sp[Joints.HIP_L].Z = o[Joints.HIP_L].Z;
+
+            sp[Joints.HIP_R].X = o[Joints.HIP_R].X / s[Joints.HIP_R].Z;
+            sp[Joints.HIP_R].Y = o[Joints.HIP_R].Y / s[Joints.HIP_R].Z;
+            sp[Joints.HIP_R].Z = o[Joints.HIP_R].Z;
+
+            //HANDS
+            sp[Joints.HAND_L].X = o[Joints.HAND_L].X / s[Joints.HAND_L].Z;
+            sp[Joints.HAND_L].Y = o[Joints.HAND_L].Y / s[Joints.HAND_L].Z;
+            sp[Joints.HAND_L].Z = o[Joints.HAND_L].Z;
+
+            sp[Joints.HAND_R].X = o[Joints.HAND_R].X / s[Joints.HAND_R].Z;
+            sp[Joints.HAND_R].Y = o[Joints.HAND_R].Y / s[Joints.HAND_R].Z;
+            sp[Joints.HAND_R].Z = o[Joints.HAND_R].Z;
+
             return sp;
 
         }
 
         static public Point3D normalizeXYPoint3D(Point3D o, double s)
         {
-            Point3D sp = new Point3D(o.X/s, o.Y/s, o.Z);
+            Point3D sp = new Point3D(o.X / s, o.Y / s, o.Z);
             return sp;
         }
 
@@ -178,8 +200,8 @@ namespace kinecontrol
         {
 
             //Set arm length
-            armLength = _calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y;
-            armLength /= 2;
+            mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y);
+            mouseController.armLength /= 2;
         }
 
         public int trySkeletonRange(Skeleton s)
@@ -212,6 +234,16 @@ namespace kinecontrol
             return new Point3D(x, y, z);
         }
 
+        static Point3D[] transformToPoint3D(SkeletonPoint[] s)
+        {
+
+            Point3D[] p = new Point3D[s.Length];
+
+            for (int i = 0; i < s.Length; i++)
+                p[i] = transformToPoint3D(s[i]);
+
+            return p;
+        }
 
     }
 
@@ -225,6 +257,16 @@ namespace kinecontrol
         public const int ANKLE_R = 3;
         public const int WRIST_L = 4;
         public const int WRIST_R = 5;
+        public const int SPINE = 6;
+
+        //New Added
+        public const int HIP_L = 7;
+        public const int HIP_R = 8;
+        public const int HAND_L = 9;
+        public const int HAND_R = 10;
+
+        //Length
+        public const int length = 11;
 
 
     }
@@ -235,5 +277,6 @@ namespace kinecontrol
         public const int MOVE_UP = 1;
         public const int MOVE_DOWN = 2;
         public const int UNDEF = -1;
+
     }
 }

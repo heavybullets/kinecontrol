@@ -28,13 +28,19 @@ namespace kinecontrol
             set;
         }
 
+        public float armLength
+        {
+            get;
+            set;
+        }
+
         public double threshold
         {
             get;
             set;
         }
 
-        public Point3D rh_center
+        public bool rightHanded
         {
             get;
             set;
@@ -49,6 +55,7 @@ namespace kinecontrol
             mode = MouseDefaults.mode;
             sensibility = MouseDefaults.sens;
             threshold = MouseDefaults.threshold;
+            rightHanded = MouseDefaults.rightHanded;
         }
 
         /// <summary>
@@ -61,6 +68,7 @@ namespace kinecontrol
             mode = _mode;
             sensibility = MouseDefaults.sens;
             threshold = MouseDefaults.threshold;
+            rightHanded = MouseDefaults.rightHanded;
         }
 
         /// <summary>
@@ -74,44 +82,111 @@ namespace kinecontrol
             mode = _mode;
             sensibility = sens;
             threshold = MouseDefaults.threshold;
+            rightHanded = MouseDefaults.rightHanded;
         }
 
         /// <summary>
-        /// Process the Hand Movements into Mouse Actions
+        /// Method for processing and getting the hand movements
         /// </summary>
-        /// <param name="rhand">Right Hand position</param>
-        /// <param name="lhand">Left Hand position</param>
-        public void processHands(Point3D rhand, Point3D lhand)
+        /// <param name="body">The array of Points that define the movement</param>
+        public void processHands(Point3D[] body)
         {
-            //TODO: sacar angulo de desfase y magnitud para obtener vector de movimiento
+            //Perform Hand Actions
+            supportHandActions(body);
+            primaryHandActions(body);
 
-            if (mode == MouseModes.DELTA)
+        }
+
+        private void supportHandActions(Point3D[] body)
+        {
+            //
+        }
+
+        private void primaryHandActions(Point3D[] body)
+        {
+            Point3D phand, shand, center;
+
+            center = getCenterPoint(body);
+
+            if (rightHanded)
             {
-                //Obtener Deltas de movimiento
-                Point3D delta = (Point3D)(rh_center - rhand);
-
-                //Normalize
-                delta = JointProcessor.normalizeXY(delta, rhand.Z);
-                
-                //Have the delta movement, need to call the mouse
-                //We use a 15-direction based movement, ranging from -2 to +2 on the X and Y axis
-                Vector3D movement = getDeltaVector(delta);
-
-                int x = (int) Math.Round(movement.X */* movement.Z */ sensibility);
-                int y = (int)Math.Round(movement.Y * /*movement.Z */ sensibility);
-
-                mouse.MoveMouseBy(x,y);
+                phand = body[Joints.HAND_R];
+                shand = body[Joints.HAND_L];
+            }
+            else
+            {
+                phand = body[Joints.HAND_L];
+                shand = body[Joints.HAND_R];
             }
 
+            //Mouse movements
+            if (mode == MouseModes.DELTA)
+            {
+
+                Point3D delta = (Point3D)(center - phand);
+
+                //Normalize
+                delta = JointProcessor.normalizeXY(delta, phand.Z);
+
+                //Have the delta movement, need to call the mouse
+                Vector3D movement = processPointWithThresholdAndSensibility(delta);
+
+                int x = (int)Math.Round(movement.X);
+                int y = (int)Math.Round(movement.Y);
+
+                mouse.MoveMouseBy(x, y);
+
+            }
+
+            //Mouse shoot
+            double z = center.Z - phand.Z;
+
+            if (z > armLength / 3)
+                mouse.LeftButtonDown();
+            else
+                mouse.LeftButtonUp();
+               
+
         }
 
         /// <summary>
-        /// This methods process the delta point given transforming it into a Movement Vector, to be used by the mouse
+        /// Method for getting the center point, definition of center point might variate during execution
         /// </summary>
-        /// <param name="d">The Delta Point holding the relative movement of the hand</param>
-        /// <returns>The Delta Vector holding X and Y movements, scaled to a -2 , 2 Range each, and Z representing the Magnitude</returns>
-        public Vector3D getDeltaVector(Point3D d)
+        /// <param name="body">Array with body coordinates</param>
+        /// <returns>Definition of Center Point</returns>
+        private Point3D getCenterPoint(Point3D[] body)
         {
+
+            Point3D center = new Point3D();
+
+            center.Y = body[Joints.SPINE].Y;
+
+            if (rightHanded)
+            {
+                center.X = body[Joints.SHOULDER_R].X;
+                center.Z = body[Joints.SHOULDER_R].Z - armLength/2;
+            }
+
+            else
+            {
+                center.X = body[Joints.SHOULDER_L].X;
+                center.Z = body[Joints.SHOULDER_L].Z - armLength/2;
+            }
+
+            return center;
+        }
+
+        /// <summary>
+        /// This methods process the delta point given and adds the ThresHold and Sensibility Effect
+        /// </summary>
+        /// <param name="d">The Delta Point holding the relative movement of the hand, against the Defined CenterPoint</param>
+        /// <returns>The Delta Vector holding X and Y movements</returns>
+        public Vector3D processPointWithThresholdAndSensibility(Point3D d)
+        {
+            //If supporting hand
+            if (SupportHand.shouldMoveAim == false)
+                return new Vector3D(0, 0, 0);
+
             double x,y;
             double abx = Math.Abs(d.X);
             double aby = Math.Abs(d.Y); ;
@@ -147,7 +222,7 @@ namespace kinecontrol
             }
             
             //TEST
-            return new Vector3D(-x, y, 0);
+            return new Vector3D(-x * sensibility, y * sensibility, 0);
             //Get the approximate magnitude
             double temp = x * x + y * y;
             double magnitude = Approximate.Sqrt((float)temp) * 1.5;
@@ -190,6 +265,14 @@ namespace kinecontrol
         public const int sens = 100;
         public const int mode = MouseModes.ABSOLUTE;
         public const double threshold = 0.01f;
+        public const bool rightHanded = true;
+    }
+
+    class SupportHand
+    {
+        public static bool shouldReloadGun = false;
+        public static bool shouldMoveAim = true;
+        public static bool inFineAimMode = false;
     }
 
 }

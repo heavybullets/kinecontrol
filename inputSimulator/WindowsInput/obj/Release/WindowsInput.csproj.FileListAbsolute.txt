@@ -1,0 +1,6 @@
+C:\Users\HeV\Documents\C#\inputSimulator\WindowsInput\bin\Release\WindowsInput.xml
+C:\Users\HeV\Documents\C#\inputSimulator\WindowsInput\bin\Release\WindowsInput.dll
+C:\Users\HeV\Documents\C#\inputSimulator\WindowsInput\bin\Release\WindowsInput.pdb
+C:\Users\HeV\Documents\C#\inputSimulator\WindowsInput\obj\Release\ResolveAssemblyReference.cache
+C:\Users\HeV\Documents\C#\inputSimulator\WindowsInput\obj\Release\WindowsInput.dll
+C:\Users\HeV\Documents\C#\inputSimulator\WindowsInput\obj\Release\WindowsInput.pdb

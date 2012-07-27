@@ -6,8 +6,6 @@ using Microsoft.Kinect;
 using System.Windows.Media.Media3D;
 using WindowsInput;
 
-//Use the inputSimulator
-
 
 namespace kinecontrol
 {
@@ -25,10 +23,6 @@ namespace kinecontrol
             set
             {
                 _calibratedPoints = value;
-<<<<<<< HEAD
-                mouseController.rh_center = JointProcessor.transformToPoint3D(value[Joints.WRIST_R]);
-=======
->>>>>>> RollBack?
             }
             get { return _calibratedPoints; }
         }
@@ -36,21 +30,16 @@ namespace kinecontrol
         //Mouse Simulator
         private MouseController mouseController;
 
-        private float armLength;
 
         public JointProcessor()
         {
             mouseController = new MouseController(MouseModes.DELTA);
         }
-        
+
         //Method for processing Joints and making events
         public void processJoints(SkeletonPoint[] point)
         {
-<<<<<<< HEAD
             Point3D[] diff = new Point3D[point.Length];
-=======
-            SkeletonPoint[] diff = new SkeletonPoint[point.Length];
->>>>>>> RollBack?
 
             float x, y, z;
 
@@ -68,7 +57,7 @@ namespace kinecontrol
             }
 
             diff = normalizeXYUsingSkeletonPoint(diff, point);
-            
+
 
             //Front-Reverse Movement
             if (-diff[Joints.SHOULDER_L].Z > umbral && -diff[Joints.SHOULDER_R].Z > umbral)
@@ -77,7 +66,7 @@ namespace kinecontrol
                 if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W) == false)
                     InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_W);
             }
-            else if(InputSimulator.IsKeyDown(VirtualKeyCode.VK_W))
+            else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_W);
 
             //Reverse Movement
@@ -87,28 +76,28 @@ namespace kinecontrol
                     InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_S);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S))
-                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_S);
+                InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_S);
 
 
             //Jump - problems when going forward
-            if (diff[Joints.SHOULDER_L].Y > (umbral / 3) && diff[Joints.SHOULDER_R].Y > (umbral / 3))
+            if (diff[Joints.SHOULDER_L].Y > (umbral / 2) && diff[Joints.SHOULDER_R].Y > (umbral / 2))
             {
                 //if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE) == false)
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
+                InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
             }
             /*else if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.SPACE);*/
 
             //Crouch - Problems when going back ... it thinks one is crouching
             //TODO: Configure for type of crouching
-            if (-diff[Joints.SHOULDER_L].Y > (umbral / 3) && -diff[Joints.SHOULDER_R].Y > (umbral / 3))
+            if (-diff[Joints.SHOULDER_L].Y > (umbral / 2) && -diff[Joints.SHOULDER_R].Y > (umbral / 2))
             {
                 if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL) == false)
                     InputSimulator.SimulateKeyDown(VirtualKeyCode.CONTROL);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.CONTROL);
-            
+
             //Left Movement
             if (-diff[Joints.SHOULDER_L].X > umbral && -diff[Joints.SHOULDER_R].X > umbral)
             {
@@ -128,8 +117,8 @@ namespace kinecontrol
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_D);
 
             //Process Mouse Movements
-            //We give whole movements, no Deltas
-            mouseController.processHands(transformToPoint3D(point[Joints.WRIST_R]), transformToPoint3D(point[Joints.WRIST_L]));
+            //We give whole body
+            mouseController.processHands(transformToPoint3D(point));
         }
 
         static public Point3D normalizeXY(Point3D p, double f)
@@ -140,16 +129,10 @@ namespace kinecontrol
             return p;
         }
 
-<<<<<<< HEAD
         static public Point3D[] normalizeXYUsingSkeletonPoint(Point3D[] o, SkeletonPoint[] s)
         {
-            Point3D[] sp = new Point3D[6];
-=======
-        static public SkeletonPoint[] normalizeXYUsingSkeletonPoint(SkeletonPoint[] o, SkeletonPoint[] s)
-        {
-            //Point3D[] sp = new Point3D[6];
-            SkeletonPoint[] sp = new SkeletonPoint[Joints.length];
->>>>>>> RollBack?
+            Point3D[] sp = new Point3D[Joints.length];
+
 
             //Get shoulders
             sp[Joints.SHOULDER_L].X = o[Joints.SHOULDER_L].X / s[Joints.SHOULDER_L].Z;
@@ -178,40 +161,49 @@ namespace kinecontrol
             sp[Joints.WRIST_R].Y = o[Joints.WRIST_R].Y / s[Joints.WRIST_R].Z;
             sp[Joints.WRIST_R].Z = o[Joints.WRIST_R].Z;
 
-<<<<<<< HEAD
-=======
             //Spine
             sp[Joints.SPINE].X = o[Joints.SPINE].X / s[Joints.SPINE].Z;
             sp[Joints.SPINE].Y = o[Joints.SPINE].Y / s[Joints.SPINE].Z;
             sp[Joints.SPINE].Z = o[Joints.SPINE].Z;
 
->>>>>>> RollBack?
+            //HIP
+            sp[Joints.HIP_L].X = o[Joints.HIP_L].X / s[Joints.HIP_L].Z;
+            sp[Joints.HIP_L].Y = o[Joints.HIP_L].Y / s[Joints.HIP_L].Z;
+            sp[Joints.HIP_L].Z = o[Joints.HIP_L].Z;
+
+            sp[Joints.HIP_R].X = o[Joints.HIP_R].X / s[Joints.HIP_R].Z;
+            sp[Joints.HIP_R].Y = o[Joints.HIP_R].Y / s[Joints.HIP_R].Z;
+            sp[Joints.HIP_R].Z = o[Joints.HIP_R].Z;
+
+            //HANDS
+            sp[Joints.HAND_L].X = o[Joints.HAND_L].X / s[Joints.HAND_L].Z;
+            sp[Joints.HAND_L].Y = o[Joints.HAND_L].Y / s[Joints.HAND_L].Z;
+            sp[Joints.HAND_L].Z = o[Joints.HAND_L].Z;
+
+            sp[Joints.HAND_R].X = o[Joints.HAND_R].X / s[Joints.HAND_R].Z;
+            sp[Joints.HAND_R].Y = o[Joints.HAND_R].Y / s[Joints.HAND_R].Z;
+            sp[Joints.HAND_R].Z = o[Joints.HAND_R].Z;
+
             return sp;
 
         }
 
-<<<<<<< HEAD
         static public Point3D normalizeXYPoint3D(Point3D o, double s)
         {
-            Point3D sp = new Point3D(o.X/s, o.Y/s, o.Z);
-=======
-        static public SkeletonPoint normalizeXYSkeletonPoint(SkeletonPoint o, float s)
-        {
-            SkeletonPoint sp = new SkeletonPoint();
-            sp.X = o.X / s;
-            sp.Y = o.Y / s;
-            sp.Z = o.Z;
-
->>>>>>> RollBack?
+            Point3D sp = new Point3D(o.X / s, o.Y / s, o.Z);
             return sp;
         }
 
-        public void setArmLength()
+        public void setArmAndWristLength()
         {
 
             //Set arm length
-            armLength = _calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y;
-            armLength /= 2;
+            mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y);
+            mouseController.armLength /= 2;
+
+            //Arm length needs the person to put his hand in front of him, palm open
+            //mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_R].Z - _calibratedPoints[Joints.HAND_R].Z);
+          
         }
 
         public int trySkeletonRange(Skeleton s)
@@ -235,7 +227,7 @@ namespace kinecontrol
             return Instruction.UNDEF;
         }
 
-        static Point3D transformToPoint3D(SkeletonPoint s)
+        static public Point3D transformToPoint3D(SkeletonPoint s)
         {
             double x = s.X;
             double y = s.Y;
@@ -244,6 +236,45 @@ namespace kinecontrol
             return new Point3D(x, y, z);
         }
 
+        static public Point3D[] transformToPoint3D(SkeletonPoint[] s)
+        {
+
+            Point3D[] p = new Point3D[s.Length];
+
+            for (int i = 0; i < s.Length; i++)
+                p[i] = transformToPoint3D(s[i]);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Method for knowing if a point is close to another point
+        /// </summary>
+        /// <param name="p1">Point 1</param>
+        /// <param name="p2">Point 2</param>
+        /// <param name="closeThreshold">Threshold for comparison</param>
+        /// <returns>True if both points are close, false if not</returns>
+        static public bool isPointCloseTo(Point3D p1, Point3D p2, float closeThreshold)
+        {
+            //True if distance is < some threshold
+            double x = p1.X - p2.X;
+            x *= x;
+
+            double y = p1.Y - p2.Y;
+            y *= y;
+
+            /*double z = p1.Z - p2.Z;
+            z *= z;*/
+
+            //Distance
+            float distance = Approximate.Sqrt((float)(x + y));
+
+            if(distance > closeThreshold)
+                return false;
+
+            return true;
+
+        }
 
     }
 
@@ -257,13 +288,18 @@ namespace kinecontrol
         public const int ANKLE_R = 3;
         public const int WRIST_L = 4;
         public const int WRIST_R = 5;
-<<<<<<< HEAD
-=======
         public const int SPINE = 6;
 
+        //New Added
+        public const int HIP_L = 7;
+        public const int HIP_R = 8;
+        public const int HAND_L = 9;
+        public const int HAND_R = 10;
+
+        //TODO add elbow
+
         //Length
-        public const int length = 7;
->>>>>>> RollBack?
+        public const int length = 11;
 
 
     }
@@ -274,5 +310,6 @@ namespace kinecontrol
         public const int MOVE_UP = 1;
         public const int MOVE_DOWN = 2;
         public const int UNDEF = -1;
+
     }
 }

@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 using Microsoft.Kinect;
+using System.Windows.Media.Imaging;
 
 namespace kinecontrol
 {
     class KinectUtils
     {
-
+        WriteableBitmap colorBitmap;
+        
         private JointProcessor proc
         {
             set;
@@ -39,34 +41,37 @@ namespace kinecontrol
         public void startCalibratingSequence()
         {
             //Turn off the standard skeleton frame ready
-            kinect.SkeletonFrameReady -= new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
+            kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
 
             //First change the tilt angle of the Kinect to the lowest
             kinect.ElevationAngle = (kinect.MaxElevationAngle + kinect.MinElevationAngle)/2;
 
             //Start looking for the best position
-            kinect.SkeletonFrameReady +=new EventHandler<SkeletonFrameReadyEventArgs>(skeletonFrameCalibrateReady);
+            kinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
         }
 
         //When calibration was succesful, we resume the normal mode and store the calibrated skeleton
         public void doneCalibratingSequence(Skeleton s)
         {
             this.proc.calibratedPoints = getPointsOfInterest(s);
-            this.proc.setArmLength();
+            this.proc.setArmAndWristLength();
 
-            kinect.SkeletonFrameReady -= new EventHandler<SkeletonFrameReadyEventArgs>(skeletonFrameCalibrateReady);
+            kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
 
             //resume normal mode
-            kinect.SkeletonFrameReady +=new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
+            kinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
         }
 
         //Skeleton Frame Ready
-        void SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
+        void AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             SkeletonFrame SFrame = e.OpenSkeletonFrame();
+            DepthImageFrame DFrame = e.OpenDepthImageFrame();
 
             if (SFrame == null)
                 return; //Couldn't Open Frame
+
+            DepthImagePoint[] p = new DepthImagePoint[20];
 
             using (SFrame)
             {
@@ -85,14 +90,22 @@ namespace kinecontrol
                         //Procesar los puntos de interes
                         proc.processJoints(processingPoints);
 
+                        /*for (int i = 0; i < processingPoints.Length; i++)
+                            p[i] = kinect.MapSkeletonPointToDepth(processingPoints[i], 0);*/
                     }
                 }
 
-            }   
+            }
+            
+            //short[] pixelData = new short[kinect.DepthStream.FramePixelDataLength];
+            using (DFrame)
+            {
+                //DFrame.CopyPixelDataTo(pixelData);
+            }
         }
 
     //Skeleton Calibrate
-        public void skeletonFrameCalibrateReady(object sender, SkeletonFrameReadyEventArgs e)
+        public void allFramesCalibrateReady(object sender,AllFramesReadyEventArgs e)
         {
             
             SkeletonFrame SFrame = e.OpenSkeletonFrame();
@@ -163,6 +176,12 @@ namespace kinecontrol
             sp[Joints.HAND_L] = s.Joints[JointType.HandLeft].Position;
             sp[Joints.HAND_R] = s.Joints[JointType.HandRight].Position;
 
+            //Elbow
+            sp[Joints.ELBOW_L] = s.Joints[JointType.ElbowLeft].Position;
+            sp[Joints.ELBOW_R] = s.Joints[JointType.ElbowRight].Position;
+
+            //Head
+            sp[Joints.HEAD] = s.Joints[JointType.Head].Position;
             return sp;
 
 
@@ -194,12 +213,15 @@ namespace kinecontrol
 
                 //Add the kinect variable
                 kinect = newKinect;
+                
+                newKinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
+                //newKinect.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
 
-                newKinect.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
+                this.colorBitmap = new WriteableBitmap(this.kinect.DepthStream.FrameWidth, this.kinect.DepthStream.FrameHeight,
+              96.0, 96.0, System.Windows.Media.PixelFormats.Bgr32, null);
             }
 
-
-        }
+    }
 
     }
 

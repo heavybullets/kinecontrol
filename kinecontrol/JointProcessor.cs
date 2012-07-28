@@ -6,8 +6,6 @@ using Microsoft.Kinect;
 using System.Windows.Media.Media3D;
 using WindowsInput;
 
-//Use the inputSimulator
-
 
 namespace kinecontrol
 {
@@ -82,7 +80,7 @@ namespace kinecontrol
 
 
             //Jump - problems when going forward
-            if (diff[Joints.SHOULDER_L].Y > (umbral / 3) && diff[Joints.SHOULDER_R].Y > (umbral / 3))
+            if (diff[Joints.SHOULDER_L].Y > (umbral / 2) && diff[Joints.SHOULDER_R].Y > (umbral / 2))
             {
                 //if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE) == false)
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
@@ -92,7 +90,7 @@ namespace kinecontrol
 
             //Crouch - Problems when going back ... it thinks one is crouching
             //TODO: Configure for type of crouching
-            if (-diff[Joints.SHOULDER_L].Y > (umbral / 3) && -diff[Joints.SHOULDER_R].Y > (umbral / 3))
+            if (-diff[Joints.SHOULDER_L].Y > (umbral / 2) && -diff[Joints.SHOULDER_R].Y > (umbral / 2))
             {
                 if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL) == false)
                     InputSimulator.SimulateKeyDown(VirtualKeyCode.CONTROL);
@@ -119,7 +117,7 @@ namespace kinecontrol
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_D);
 
             //Process Mouse Movements
-            //We give whole movements, no Deltas
+            //We give whole body
             mouseController.processHands(transformToPoint3D(point));
         }
 
@@ -186,6 +184,20 @@ namespace kinecontrol
             sp[Joints.HAND_R].Y = o[Joints.HAND_R].Y / s[Joints.HAND_R].Z;
             sp[Joints.HAND_R].Z = o[Joints.HAND_R].Z;
 
+            //ELBOW
+            sp[Joints.ELBOW_L].X = o[Joints.ELBOW_L].X / s[Joints.ELBOW_L].Z;
+            sp[Joints.ELBOW_L].Y = o[Joints.ELBOW_L].Y / s[Joints.ELBOW_L].Z;
+            sp[Joints.ELBOW_L].Z = o[Joints.ELBOW_L].Z;
+
+            sp[Joints.ELBOW_R].X = o[Joints.ELBOW_R].X / s[Joints.ELBOW_R].Z;
+            sp[Joints.ELBOW_R].Y = o[Joints.ELBOW_R].Y / s[Joints.ELBOW_R].Z;
+            sp[Joints.ELBOW_R].Z = o[Joints.ELBOW_R].Z;
+
+            //HEAD
+            sp[Joints.HEAD].X = o[Joints.HEAD].X / s[Joints.HEAD].Z;
+            sp[Joints.HEAD].Y = o[Joints.HEAD].Y / s[Joints.HEAD].Z;
+            sp[Joints.HEAD].Z = o[Joints.HEAD].Z;
+
             return sp;
 
         }
@@ -196,12 +208,16 @@ namespace kinecontrol
             return sp;
         }
 
-        public void setArmLength()
+        public void setArmAndWristLength()
         {
 
             //Set arm length
             mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y);
             mouseController.armLength /= 2;
+
+            //Arm length needs the person to put his hand in front of him, palm open
+            //mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_R].Z - _calibratedPoints[Joints.HAND_R].Z);
+          
         }
 
         public int trySkeletonRange(Skeleton s)
@@ -225,7 +241,7 @@ namespace kinecontrol
             return Instruction.UNDEF;
         }
 
-        static Point3D transformToPoint3D(SkeletonPoint s)
+        static public Point3D transformToPoint3D(SkeletonPoint s)
         {
             double x = s.X;
             double y = s.Y;
@@ -234,7 +250,7 @@ namespace kinecontrol
             return new Point3D(x, y, z);
         }
 
-        static Point3D[] transformToPoint3D(SkeletonPoint[] s)
+        static public Point3D[] transformToPoint3D(SkeletonPoint[] s)
         {
 
             Point3D[] p = new Point3D[s.Length];
@@ -243,6 +259,35 @@ namespace kinecontrol
                 p[i] = transformToPoint3D(s[i]);
 
             return p;
+        }
+
+        /// <summary>
+        /// Method for knowing if a point is close to another point
+        /// </summary>
+        /// <param name="p1">Point 1</param>
+        /// <param name="p2">Point 2</param>
+        /// <param name="closeThreshold">Threshold for comparison</param>
+        /// <returns>True if both points are close, false if not</returns>
+        static public bool isPointCloseTo(Point3D p1, Point3D p2, float closeThreshold)
+        {
+            //True if distance is < some threshold
+            double x = p1.X - p2.X;
+            x *= x;
+
+            double y = p1.Y - p2.Y;
+            y *= y;
+
+            /*double z = p1.Z - p2.Z;
+            z *= z;*/
+
+            //Distance
+            float distance = Approximate.Sqrt((float)(x + y));
+
+            if(distance > closeThreshold)
+                return false;
+
+            return true;
+
         }
 
     }
@@ -265,8 +310,15 @@ namespace kinecontrol
         public const int HAND_L = 9;
         public const int HAND_R = 10;
 
+        //TODO add elbow
+        public const int ELBOW_L = 11;
+        public const int ELBOW_R = 12;
+
+        //HEAD
+        public const int HEAD = 13;
+
         //Length
-        public const int length = 11;
+        public const int length = 14;
 
 
     }

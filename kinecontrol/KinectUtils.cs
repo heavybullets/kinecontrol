@@ -18,7 +18,16 @@ namespace kinecontrol
             get;
         }
 
-        public KinectSensor kinect
+        public MainWindow window
+        {
+            get;
+            set;
+        }
+
+        private DepthProcessor depthproc = null;
+        
+
+        public static KinectSensor kinect
         {
             set;
             get;
@@ -28,13 +37,20 @@ namespace kinecontrol
         {
             kinect = k;
             this.proc = new JointProcessor();
-            proc.umbral = 0.1f;
+            proc.umbral_movimiento = 0.05f;
+            proc.umbral_altura = 0.1f;
         }
 
         public KinectUtils()
         {
             this.proc = new JointProcessor();
-            proc.umbral = 0.2f;
+            proc.umbral_movimiento = 0.05f;
+            proc.umbral_altura = 0.1f;
+        }
+
+        public WriteableBitmap getDepthProcessorBitMap()
+        {
+            return depthproc.bitmap;
         }
 
         //For Calibrating the Kinect
@@ -54,7 +70,7 @@ namespace kinecontrol
         public void doneCalibratingSequence(Skeleton s)
         {
             this.proc.calibratedPoints = getPointsOfInterest(s);
-            this.proc.setArmAndWristLength();
+            this.proc.setArmLength();
 
             kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
 
@@ -97,11 +113,20 @@ namespace kinecontrol
 
             }
             
-            //short[] pixelData = new short[kinect.DepthStream.FramePixelDataLength];
             using (DFrame)
             {
-                //DFrame.CopyPixelDataTo(pixelData);
+                if (DFrame == null)
+                    return;
+                //See if the depth Proc is null
+                if (depthproc == null)
+                {
+                    depthproc = new DepthProcessor(DFrame.PixelDataLength, DFrame.Width, DFrame.Height,1);
+                    proc.mouseController.dproc = depthproc;
+                }
+                
+                depthproc.setPlayerDepthData(DFrame);
             }
+
         }
 
     //Skeleton Calibrate
@@ -217,9 +242,27 @@ namespace kinecontrol
                 newKinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
                 //newKinect.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
 
-                this.colorBitmap = new WriteableBitmap(this.kinect.DepthStream.FrameWidth, this.kinect.DepthStream.FrameHeight,
+                this.colorBitmap = new WriteableBitmap(kinect.DepthStream.FrameWidth, kinect.DepthStream.FrameHeight,
               96.0, 96.0, System.Windows.Media.PixelFormats.Bgr32, null);
             }
+
+        public static System.Windows.Point mapSkeletonPoint3DToDepth(System.Windows.Media.Media3D.Point3D point)
+        {
+            //The Point must be converted to the original Skeleton
+            SkeletonPoint sp = new SkeletonPoint();
+            sp.X = (float)point.X;
+            sp.Y = (float)point.Y;
+            sp.Z = (float)point.Z;
+
+            //Then it must be converted to a DepthFrame Coordinate
+            DepthImagePoint dp = kinect.MapSkeletonPointToDepth(sp, kinect.DepthStream.Format);
+
+            //then it must be scaled 
+            float xd = Math.Min(dp.X * kinect.DepthStream.FrameWidth, kinect.DepthStream.FrameWidth);
+            float yd = Math.Min(dp.Y * kinect.DepthStream.FrameHeight, kinect.DepthStream.FrameHeight);
+
+            return new System.Windows.Point(xd, yd);
+        }
 
     }
 

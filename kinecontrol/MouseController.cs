@@ -12,6 +12,13 @@ namespace kinecontrol
     /// </summary>
     class MouseController
     {
+
+        public DepthProcessor dproc
+        {
+            get;
+            set;
+        }
+
         private MouseSimulator mouse;
         private int mode
         {

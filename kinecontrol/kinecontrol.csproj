@@ -72,6 +72,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Approximate.cs" />
+    <Compile Include="DepthProcessor.cs" />
     <Compile Include="MouseController.cs" />
     <Compile Include="KinectUtils.cs" />
     <Compile Include="JointProcessor.cs" />

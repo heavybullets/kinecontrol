@@ -11,11 +11,18 @@ namespace kinecontrol
 {
     class JointProcessor
     {
-        public float umbral
+        public float umbral_movimiento
         {
             get;
             set;
         }
+
+        public float umbral_altura
+        {
+            get;
+            set;
+        }
+
         private SkeletonPoint[] _calibratedPoints;
 
         public SkeletonPoint[] calibratedPoints
@@ -28,12 +35,18 @@ namespace kinecontrol
         }
 
         //Mouse Simulator
-        private MouseController mouseController;
+        private MouseController _mouseController;
+        public MouseController mouseController
+        {
+            get { return _mouseController; }
+            set { _mouseController = value; }
+        }
+
 
 
         public JointProcessor()
         {
-            mouseController = new MouseController(MouseModes.DELTA);
+            _mouseController = new MouseController(MouseModes.DELTA);
         }
 
         //Method for processing Joints and making events
@@ -60,27 +73,27 @@ namespace kinecontrol
 
 
             //Front-Reverse Movement
-            if (-diff[Joints.SHOULDER_L].Z > umbral && -diff[Joints.SHOULDER_R].Z > umbral)
+            if (-diff[Joints.SHOULDER_L].Z > umbral_movimiento && -diff[Joints.SHOULDER_R].Z > umbral_movimiento)
             {
                 //See if it's pressed
-                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_W);
+                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_W);*/
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_W);
 
             //Reverse Movement
-            if (diff[Joints.SHOULDER_L].Z > umbral && diff[Joints.SHOULDER_R].Z > umbral)
+            if (diff[Joints.SHOULDER_L].Z > umbral_movimiento && diff[Joints.SHOULDER_R].Z > umbral_movimiento)
             {
-                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_S);
+                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_S);*/
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_S);
 
 
             //Jump - problems when going forward
-            if (diff[Joints.SHOULDER_L].Y > (umbral / 2) && diff[Joints.SHOULDER_R].Y > (umbral / 2))
+            if (diff[Joints.SHOULDER_L].Y > (umbral_altura/2) || diff[Joints.SHOULDER_R].Y > (umbral_altura/2))
             {
                 //if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE) == false)
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
@@ -90,42 +103,41 @@ namespace kinecontrol
 
             //Crouch - Problems when going back ... it thinks one is crouching
             //TODO: Configure for type of crouching
-            if (-diff[Joints.SHOULDER_L].Y > (umbral / 2) && -diff[Joints.SHOULDER_R].Y > (umbral / 2))
+            if (-diff[Joints.SHOULDER_L].Y > (umbral_altura) || -diff[Joints.SHOULDER_R].Y > (umbral_altura))
             {
-                if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.CONTROL);
+                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.CONTROL);*/
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.CONTROL);
 
             //Left Movement
-            if (-diff[Joints.SHOULDER_L].X > umbral && -diff[Joints.SHOULDER_R].X > umbral)
+            if (-diff[Joints.SHOULDER_L].X > umbral_movimiento && -diff[Joints.SHOULDER_R].X > umbral_movimiento)
             {
-                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_A) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_A);
+                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_A) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_A);*/
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_A))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_A);
 
             //Right Movement
-            if (diff[Joints.SHOULDER_L].X > umbral && diff[Joints.SHOULDER_R].X > umbral)
+            if (diff[Joints.SHOULDER_L].X > umbral_movimiento && diff[Joints.SHOULDER_R].X > umbral_movimiento)
             {
-                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_D);
+                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_D);*/
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_D);
 
             //Process Mouse Movements
             //We give whole body
-            mouseController.processHands(transformToPoint3D(point));
+            _mouseController.processHands(transformToPoint3D(point));
         }
 
         static public Point3D normalizeXY(Point3D p, double f)
         {
             p.X = p.X / f;
             p.Y = p.Y / f;
-
             return p;
         }
 
@@ -208,12 +220,12 @@ namespace kinecontrol
             return sp;
         }
 
-        public void setArmAndWristLength()
+        public void setArmLength()
         {
 
             //Set arm length
-            mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y);
-            mouseController.armLength /= 2;
+            _mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_L].Y - _calibratedPoints[Joints.ANKLE_L].Y);
+            _mouseController.armLength /= 2;
 
             //Arm length needs the person to put his hand in front of him, palm open
             //mouseController.armLength = Math.Abs(_calibratedPoints[Joints.SHOULDER_R].Z - _calibratedPoints[Joints.HAND_R].Z);

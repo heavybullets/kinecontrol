@@ -33,6 +33,7 @@ namespace kinecontrol
         {
             InitializeComponent();
             util = new KinectUtils();
+            util.window = this;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -54,9 +55,6 @@ namespace kinecontrol
             util.initNewKinect(newK);
         }
 
-
-
-
         private void Window_Closed(object sender, EventArgs e)
         {
             util.StopKinect(kinectSensorChooser1.Kinect);
@@ -77,15 +75,6 @@ namespace kinecontrol
         {
             //Prepare for calibration
             util.startCalibratingSequence();
-        }
-
-
-
-        //Handler for the Calibrate Button
-        private void button2_Click(object sender, RoutedEventArgs e)
-        {
-
-
         }
 
         }

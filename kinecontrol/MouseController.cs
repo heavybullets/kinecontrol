@@ -134,12 +134,12 @@ namespace kinecontrol
 
             if (isCloseToSpine || isCloseToElbow || isCloseToWrist)
             {
-                if (SupportHand.shouldReloadGun)
+               /* if (SupportHand.shouldReloadGun)
                 {
                     WindowsInput.InputSimulator.SimulateKeyPress(WindowsInput.VirtualKeyCode.VK_R);
                     SupportHand.shouldReloadGun = false;
                 }
-                SupportHand.inFineAimMode = true;
+                SupportHand.inFineAimMode = true;*/
             }
             else
                 SupportHand.inFineAimMode = false;
@@ -192,6 +192,10 @@ namespace kinecontrol
 
             }
 
+            int area = dproc.getAreaAroundPointWithThreshold(phand, 100);
+
+            if (area != -1)
+                System.Console.Out.WriteLine(area);
             //Mouse shoot
 
             //Old method

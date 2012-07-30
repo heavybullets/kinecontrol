@@ -11,6 +11,8 @@ namespace kinecontrol
     class KinectUtils
     {
         WriteableBitmap colorBitmap;
+
+        private bool calibrate = false;
         
         private JointProcessor proc
         {
@@ -57,13 +59,18 @@ namespace kinecontrol
         public void startCalibratingSequence()
         {
             //Turn off the standard skeleton frame ready
-            kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
+            //kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
+            kinect.ElevationAngle = (kinect.MaxElevationAngle + kinect.MinElevationAngle) / 2;
 
+            //For some reason we can't erase the handler... and that cause another thread to come up
+            //And that gives problems when changing the bitmap
+            //So we use a calibrate flag
+            calibrate = true;
             //First change the tilt angle of the Kinect to the lowest
-            kinect.ElevationAngle = (kinect.MaxElevationAngle + kinect.MinElevationAngle)/2;
+            
 
             //Start looking for the best position
-            kinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
+            //kinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
         }
 
         //When calibration was succesful, we resume the normal mode and store the calibrated skeleton
@@ -72,15 +79,24 @@ namespace kinecontrol
             this.proc.calibratedPoints = getPointsOfInterest(s);
             this.proc.setArmLength();
 
-            kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
+            calibrate = false;
+            //kinect.AllFramesReady -= new EventHandler<AllFramesReadyEventArgs>(allFramesCalibrateReady);
 
             //resume normal mode
-            kinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
+            //kinect.AllFramesReady +=new EventHandler<AllFramesReadyEventArgs>(AllFramesReady);
         }
 
         //Skeleton Frame Ready
         void AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
+
+            
+            if (calibrate)
+            {
+                allFramesCalibrateReady(sender, e);
+                return;
+            }
+
             SkeletonFrame SFrame = e.OpenSkeletonFrame();
             DepthImageFrame DFrame = e.OpenDepthImageFrame();
 
@@ -88,6 +104,22 @@ namespace kinecontrol
                 return; //Couldn't Open Frame
 
             DepthImagePoint[] p = new DepthImagePoint[20];
+
+            using (DFrame)
+            {
+                if (DFrame == null)
+                    return;
+                //See if the depth Proc is null
+                if (depthproc == null)
+                {
+                    depthproc = new DepthProcessor(DFrame.PixelDataLength, DFrame.Width, DFrame.Height, 1);
+                    depthproc.img = window.depthPlayer;
+                    proc.mouseController.dproc = depthproc;
+                    window.depthPlayer.Source = depthproc.bitmap;
+                }
+
+                depthproc.setPlayerDepthData(DFrame);
+            }
 
             using (SFrame)
             {
@@ -113,20 +145,7 @@ namespace kinecontrol
 
             }
             
-            using (DFrame)
-            {
-                if (DFrame == null)
-                    return;
-                //See if the depth Proc is null
-                if (depthproc == null)
-                {
-                    depthproc = new DepthProcessor(DFrame.PixelDataLength, DFrame.Width, DFrame.Height,1);
-                    proc.mouseController.dproc = depthproc;
-                    window.depthPlayer.Source = depthproc.bitmap;
-                }
-                
-                depthproc.setPlayerDepthData(DFrame);
-            }
+            
 
         }
 
@@ -135,7 +154,6 @@ namespace kinecontrol
         {
             
             SkeletonFrame SFrame = e.OpenSkeletonFrame();
-
             if (SFrame == null)
                 return; //Couldn't Open Frame
 
@@ -257,6 +275,8 @@ namespace kinecontrol
 
             //Then it must be converted to a DepthFrame Coordinate
             DepthImagePoint dp = kinect.MapSkeletonPointToDepth(sp, kinect.DepthStream.Format);
+            dp.X = Math.Min(dp.X, kinect.DepthStream.FrameWidth);
+            dp.Y = Math.Min(dp.Y, kinect.DepthStream.FrameHeight);
             return dp;
             
         }

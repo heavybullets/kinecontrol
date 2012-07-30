@@ -71,13 +71,13 @@ namespace kinecontrol
 
             diff = normalizeXYUsingSkeletonPoint(diff, point);
 
-
+            /*
             //Front-Reverse Movement
             if (-diff[Joints.SHOULDER_L].Z > umbral_movimiento && -diff[Joints.SHOULDER_R].Z > umbral_movimiento)
             {
                 //See if it's pressed
-                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_W);*/
+                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_W);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_W))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_W);
@@ -85,8 +85,8 @@ namespace kinecontrol
             //Reverse Movement
             if (diff[Joints.SHOULDER_L].Z > umbral_movimiento && diff[Joints.SHOULDER_R].Z > umbral_movimiento)
             {
-                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_S);*/
+                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_S);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_S))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_S);
@@ -98,15 +98,15 @@ namespace kinecontrol
                 //if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE) == false)
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
             }
-            /*else if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE))
-                InputSimulator.SimulateKeyUp(VirtualKeyCode.SPACE);*/
+            else if (InputSimulator.IsKeyDown(VirtualKeyCode.SPACE))
+                InputSimulator.SimulateKeyUp(VirtualKeyCode.SPACE);
 
             //Crouch - Problems when going back ... it thinks one is crouching
             //TODO: Configure for type of crouching
             if (-diff[Joints.SHOULDER_L].Y > (umbral_altura) || -diff[Joints.SHOULDER_R].Y > (umbral_altura))
             {
-                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.CONTROL);*/
+                if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.CONTROL);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.CONTROL))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.CONTROL);
@@ -114,8 +114,8 @@ namespace kinecontrol
             //Left Movement
             if (-diff[Joints.SHOULDER_L].X > umbral_movimiento && -diff[Joints.SHOULDER_R].X > umbral_movimiento)
             {
-                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_A) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_A);*/
+                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_A) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_A);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_A))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_A);
@@ -123,12 +123,12 @@ namespace kinecontrol
             //Right Movement
             if (diff[Joints.SHOULDER_L].X > umbral_movimiento && diff[Joints.SHOULDER_R].X > umbral_movimiento)
             {
-                /*if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D) == false)
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_D);*/
+                if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D) == false)
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_D);
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_D);
-
+        */
             //Process Mouse Movements
             //We give whole body
             _mouseController.processHands(transformToPoint3D(point));

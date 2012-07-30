@@ -19,6 +19,8 @@ namespace kinecontrol
             set;
         }
 
+        private int referenceHandArea;
+        
         private MouseSimulator mouse;
         private int mode
         {
@@ -92,6 +94,14 @@ namespace kinecontrol
             rightHanded = MouseDefaults.rightHanded;
         }
 
+        public void calibrateHandArea(Point3D[] body)
+            {
+                if(rightHanded)
+                    referenceHandArea = dproc.getAreaAroundPointWithThreshold(body[Joints.HAND_R],100);
+                else
+                    referenceHandArea = dproc.getAreaAroundPointWithThreshold(body[Joints.HAND_L],100);
+            }
+
         /// <summary>
         /// Method for processing and getting the hand movements
         /// </summary>
@@ -134,12 +144,16 @@ namespace kinecontrol
 
             if (isCloseToSpine || isCloseToElbow || isCloseToWrist)
             {
-               /* if (SupportHand.shouldReloadGun)
+                if (SupportHand.shouldReloadGun)
                 {
                     WindowsInput.InputSimulator.SimulateKeyPress(WindowsInput.VirtualKeyCode.VK_R);
                     SupportHand.shouldReloadGun = false;
                 }
-                SupportHand.inFineAimMode = true;*/
+                else
+                {
+                    SupportHand.inFineAimMode = true;
+
+                }
             }
             else
                 SupportHand.inFineAimMode = false;
@@ -192,20 +206,25 @@ namespace kinecontrol
 
             }
 
+            /*On development
             int area = dproc.getAreaAroundPointWithThreshold(phand, 100);
 
-            if (area != -1)
-                System.Console.Out.WriteLine(area);
+            if (area != -1 && area < referenceHandArea * 0.5)
+            {
+                mouse.LeftButtonDown();
+            }
+            else
+                mouse.LeftButtonUp();*/
             //Mouse shoot
 
             //Old method
-            /*double z = center.Z - phand.Z;
+            double z = center.Z - phand.Z;
 
-            if (z > armLength/3)
+            if (z > (2*armLength / 5))
                 mouse.LeftButtonDown();
             else
                 mouse.LeftButtonUp();
-            */
+            
         }
 
         /// <summary>
@@ -221,13 +240,13 @@ namespace kinecontrol
             if (rightHanded)
             {
                 center.X = body[Joints.SHOULDER_R].X;
-                center.Z = body[Joints.SHOULDER_R].Z - armLength / 2;
+                center.Z = body[Joints.SHOULDER_R].Z - armLength / 3;
             }
 
             else
             {
                 center.X = body[Joints.SHOULDER_L].X;
-                center.Z = body[Joints.SHOULDER_L].Z - armLength / 2;
+                center.Z = body[Joints.SHOULDER_L].Z - armLength / 3;
             }
             return center;
         }
@@ -342,7 +361,7 @@ namespace kinecontrol
 
     static class MouseDefaults
     {
-        public const int sens = 100;
+        public const int sens = 200;
         public const int mode = MouseModes.ABSOLUTE;
         public const double threshold = 0.01f;
         public const bool rightHanded = true;

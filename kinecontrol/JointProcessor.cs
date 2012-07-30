@@ -30,6 +30,9 @@ namespace kinecontrol
             set
             {
                 _calibratedPoints = value;
+
+                //Ask the mouse to set the Area of open Hand
+                mouseController.calibrateHandArea(transformToPoint3D(value));
             }
             get { return _calibratedPoints; }
         }
@@ -71,7 +74,7 @@ namespace kinecontrol
 
             diff = normalizeXYUsingSkeletonPoint(diff, point);
 
-            /*
+            
             //Front-Reverse Movement
             if (-diff[Joints.SHOULDER_L].Z > umbral_movimiento && -diff[Joints.SHOULDER_R].Z > umbral_movimiento)
             {
@@ -128,7 +131,7 @@ namespace kinecontrol
             }
             else if (InputSimulator.IsKeyDown(VirtualKeyCode.VK_D))
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_D);
-        */
+        
             //Process Mouse Movements
             //We give whole body
             _mouseController.processHands(transformToPoint3D(point));

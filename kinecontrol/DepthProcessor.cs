@@ -122,37 +122,41 @@ namespace kinecontrol
             while(!stop)
             {
                 //Horizontal
-                if (dilated[dp.Y * stride + dp.X + right] == 255)
-                {   
-                    dilated[dp.Y * stride + dp.X + right] = 0;
-                    right++;
-                }
-                else
-                    stopR = true;
+                if(dp.Y * stride + dp.X + right < dilated.Length)
+                    if (dilated[dp.Y * stride + dp.X + right] == 255)
+                    {   
+                        dilated[dp.Y * stride + dp.X + right] = 0;
+                        right++;
+                    }
+                    else
+                        stopR = true;
 
-                if (dilated[dp.Y * stride + dp.X - left] == 255)
-                {
-                    dilated[dp.Y * stride + dp.X - left] = 0;
-                    left++;
-                }
-                else stopL = true;
+                if(dp.Y * stride + dp.X + -left > 0)
+                    if (dilated[dp.Y * stride + dp.X - left] == 255)
+                    {
+                        dilated[dp.Y * stride + dp.X - left] = 0;
+                        left++;
+                    }
+                    else stopL = true;
 
                 //Vertical
-                if (dilated[(dp.Y - top) * stride + dp.X] == 255)
-                {
-                    dilated[(dp.Y - top) * stride + dp.X] = 0;
-                    top++;
-                }
-                else
-                    stopT = true;
+                if ((dp.Y - top) *stride + dp.X > 0)
+                    if (dilated[(dp.Y - top) * stride + dp.X] == 255)
+                    {
+                        dilated[(dp.Y - top) * stride + dp.X] = 0;
+                        top++;
+                    }
+                    else
+                        stopT = true;
 
-                if (dilated[(dp.Y + bottom) * stride + dp.X] == 255)
-                {
-                    dilated[(dp.Y + bottom) * stride + dp.X] = 0;
-                    bottom++;
-                }
-                else
-                    stopB = true;
+                if((dp.Y + bottom) * stride + dp.X < dilated.Length)
+                    if (dilated[(dp.Y + bottom) * stride + dp.X] == 255)
+                    {
+                        dilated[(dp.Y + bottom) * stride + dp.X] = 0;
+                        bottom++;
+                    }
+                    else
+                        stopB = true;
 
                 stop = stopB || stopT || stopL || stopR;
             }

@@ -39,8 +39,8 @@ namespace kinecontrol
         {
             kinect = k;
             this.proc = new JointProcessor();
-            proc.umbral_movimiento = 0.05f;
-            proc.umbral_altura = 0.1f;
+            proc.umbral_movimiento = 0.03f;
+            proc.umbral_altura = 0.15f;
         }
 
         public KinectUtils()

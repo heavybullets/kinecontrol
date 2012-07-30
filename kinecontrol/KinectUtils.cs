@@ -113,7 +113,6 @@ namespace kinecontrol
                 if (depthproc == null)
                 {
                     depthproc = new DepthProcessor(DFrame.PixelDataLength, DFrame.Width, DFrame.Height, 1);
-                    depthproc.img = window.depthPlayer;
                     proc.mouseController.dproc = depthproc;
                     window.depthPlayer.Source = depthproc.bitmap;
                 }

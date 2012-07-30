@@ -10,6 +10,9 @@ using System.Windows.Media.Media3D;
 using Emgu.CV;
 using Emgu.CV.Structure;
 
+using System.Drawing;
+using System.IO;
+
 namespace kinecontrol
 {
     class DepthProcessor
@@ -49,7 +52,6 @@ namespace kinecontrol
             bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Gray8,null);   //Grayscale 1 byte per pixel
             rect = new Int32Rect(0, 0, width, height);
 
-
         }
 
 
@@ -59,28 +61,6 @@ namespace kinecontrol
             stride = nchannels * frame.Width;
             //Get Raw Data!
             frame.CopyPixelDataTo(rawData);
-
-            /*//Using player index, filter the player depth image
-            for (int rawIndex = 0, pixelIndex = 0; rawIndex < rawData.Length && pixelIndex < pixelData.Length;
-                rawIndex++, pixelIndex += this.nchannels)
-            {
-                //First Acquiere the player index
-                player = rawData[rawIndex] & DepthImageFrame.PlayerIndexBitmask;
-
-                //See if the pixel corresponds that of a player
-                if (player > 0)
-                {
-                    //It's a Player pixel, get the Depth
-                    depth = rawData[rawIndex] >> DepthImageFrame.PlayerIndexBitmaskWidth;
-
-                    //Put it on the Array
-                    pixelData[pixelIndex] = (byte)depth;
-                }
-                else
-                    //If it isn't put 0
-                    pixelData[pixelIndex] = 0;
-
-            }*/
 
             for (int i16 = 0, i8 = 0; i16 < rawData.Length && i8 < this.pixelData.Length; i16++, i8 += nchannels)
             {
@@ -131,6 +111,9 @@ namespace kinecontrol
             //Perform threshold
             byte[] thresholded = thresholdImage((int)threshold_min, (int)threshold_max);
 
+            byte[] dilated = thresholded;
+            for(int i = 0; i < 3; i++)
+                dilated = binaryDilateImage(dilated, 1, rect.Height, rect.Width);
 
             //With the thresholded Image we need the area around the coordinate Points
             int left = 1, right = 1, top = 1,bottom = 1;
@@ -139,33 +122,33 @@ namespace kinecontrol
             while(!stop)
             {
                 //Horizontal
-                if (thresholded[dp.Y * stride + dp.X + right] == 255)
+                if (dilated[dp.Y * stride + dp.X + right] == 255)
                 {   
-                    thresholded[dp.Y * stride + dp.X + right] = 0;
+                    dilated[dp.Y * stride + dp.X + right] = 0;
                     right++;
                 }
                 else
                     stopR = true;
 
-                if (thresholded[dp.Y * stride + dp.X - left] == 255)
+                if (dilated[dp.Y * stride + dp.X - left] == 255)
                 {
-                    thresholded[dp.Y * stride + dp.X - left] = 0;
+                    dilated[dp.Y * stride + dp.X - left] = 0;
                     left++;
                 }
                 else stopL = true;
 
                 //Vertical
-                if (thresholded[(dp.Y - top) * stride + dp.X] == 255)
+                if (dilated[(dp.Y - top) * stride + dp.X] == 255)
                 {
-                    thresholded[(dp.Y - top) * stride + dp.X] = 0;
+                    dilated[(dp.Y - top) * stride + dp.X] = 0;
                     top++;
                 }
                 else
                     stopT = true;
 
-                if (thresholded[(dp.Y + bottom) * stride + dp.X] == 255)
+                if (dilated[(dp.Y + bottom) * stride + dp.X] == 255)
                 {
-                    thresholded[(dp.Y + bottom) * stride + dp.X] = 0;
+                    dilated[(dp.Y + bottom) * stride + dp.X] = 0;
                     bottom++;
                 }
                 else
@@ -184,12 +167,49 @@ namespace kinecontrol
 
 
             //DEBUG
-            bitmap.WritePixels(rect, thresholded, stride, 0);
+            bitmap.WritePixels(rect, dilated, stride, 0);
 
             //Return Area
             return height * width;
 
             
+        }
+
+        public Byte[] binaryDilateImage(Byte[] src, int nchannels, int height, int width)
+        {
+            Byte[] img = new byte[height*width];
+            int length = height*width;
+            int lstride;
+            for(int j = 0; j < height; j++)
+                for (int i = 0; i < width; i += nchannels)
+                {
+                    //Dilate
+                    lstride = width * nchannels;
+                    int index = i + j * lstride;
+
+                    if (src[index] != 0)
+                        img[index] = 255;
+
+                    if (index + 1 < length)
+                        if (src[index + 1] != 0)
+                            img[index] = 255;
+
+                    if (index - 1 > 0)
+                        if (src[index - 1] != 0)
+                            img[index] = 255;
+
+                    if (index + lstride < length)
+                        if (src[index + lstride] != 0)
+                            img[index] = 255;
+
+                    if (index - lstride > 0)
+                        if (src[index - lstride] != 0)
+                            img[index] = 255;
+                    
+                }   
+
+            return img;
+
         }
 
         public Byte[] thresholdImage(int min, int max)

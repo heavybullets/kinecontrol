@@ -122,6 +122,7 @@ namespace kinecontrol
                 {
                     depthproc = new DepthProcessor(DFrame.PixelDataLength, DFrame.Width, DFrame.Height,1);
                     proc.mouseController.dproc = depthproc;
+                    window.depthPlayer.Source = depthproc.bitmap;
                 }
                 
                 depthproc.setPlayerDepthData(DFrame);
@@ -246,7 +247,7 @@ namespace kinecontrol
               96.0, 96.0, System.Windows.Media.PixelFormats.Bgr32, null);
             }
 
-        public static System.Windows.Point mapSkeletonPoint3DToDepth(System.Windows.Media.Media3D.Point3D point)
+        public static DepthImagePoint mapSkeletonPoint3DToDepthPoint(System.Windows.Media.Media3D.Point3D point)
         {
             //The Point must be converted to the original Skeleton
             SkeletonPoint sp = new SkeletonPoint();
@@ -256,8 +257,12 @@ namespace kinecontrol
 
             //Then it must be converted to a DepthFrame Coordinate
             DepthImagePoint dp = kinect.MapSkeletonPointToDepth(sp, kinect.DepthStream.Format);
+            return dp;
+            
+        }
 
-            //then it must be scaled 
+        public static System.Windows.Point DepthPointToIndexes(DepthImagePoint dp)
+        {
             float xd = Math.Min(dp.X * kinect.DepthStream.FrameWidth, kinect.DepthStream.FrameWidth);
             float yd = Math.Min(dp.Y * kinect.DepthStream.FrameHeight, kinect.DepthStream.FrameHeight);
 
